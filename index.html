@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CME Güvenli Giriş</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .hidden { display: none !important; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="login-screen" class="w-full max-w-sm glass-card p-10 rounded-3xl shadow-2xl">
+        <div class="text-center mb-8">
+            <div class="inline-block p-3 bg-indigo-600/20 rounded-full mb-3">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8-8v4" />
+                </svg>
+            </div>
+            <h2 class="text-2xl font-bold">Özel Panel</h2>
+            <p class="text-slate-400 text-sm mt-1">Devam etmek için doğrula</p>
+        </div>
+
+        <input id="password-input" type="password" placeholder="Karmaşık Şifre" class="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-2xl mb-4 outline-none focus:ring-2 focus:ring-indigo-500 text-white text-center transition-all">
+        <button onclick="checkPassword()" class="w-full bg-indigo-600 p-4 rounded-2xl font-bold hover:bg-indigo-500 active:scale-95 transition-all shadow-lg shadow-indigo-500/30">Sistemi Aç</button>
+        <p id="error-msg" class="text-red-400 text-xs mt-4 hidden text-center font-medium">Yetkisiz Erişim: Şifre Hatalı!</p>
+    </div>
+
+    <div id="app-content" class="hidden w-full max-w-md glass-card p-8 rounded-[2.5rem]">
+        <div class="text-center mb-8">
+            <h1 class="text-2xl font-black tracking-tighter bg-gradient-to-br from-indigo-400 via-white to-cyan-400 bg-clip-text text-transparent uppercase">CME LİKİDİTE ANALİZ</h1>
+        </div>
+        
+        <div class="space-y-6">
+            <div class="grid grid-cols-2 gap-4">
+                <div class="col-span-1">
+                    <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest">CME Low</label>
+                    <input id="low" type="number" value="84600" class="w-full bg-slate-800/40 p-3 rounded-2xl border border-slate-700 text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+                <div class="col-span-1">
+                    <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest">CME High</label>
+                    <input id="high" type="number" value="85250" class="w-full bg-slate-800/40 p-3 rounded-2xl border border-slate-700 text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
+            </div>
+            <div>
+                <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest text-center block mb-1">Volatilite (%)</label>
+                <input id="vol" type="number" value="2.5" step="0.1" class="w-full bg-slate-800/40 p-4 rounded-2xl border border-slate-700 text-white text-center outline-none focus:ring-2 focus:ring-cyan-500 text-xl font-bold">
+            </div>
+
+            <button onclick="calc()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 py-5 rounded-2xl font-black text-white shadow-xl shadow-indigo-900/40 hover:brightness-110 active:scale-[0.98] transition-all uppercase tracking-widest">Hesaplamayı Başlat</button>
+            
+            <div id="out" class="hidden space-y-4 pt-6 border-t border-slate-800/50">
+                <div class="bg-emerald-500/5 p-5 rounded-[2rem] border border-emerald-500/20">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-emerald-500 text-[10px] font-black uppercase tracking-widest text-white/40">Short Zone (Satış)</span>
+                        <span class="h-2 w-2 rounded-full bg-emerald-500 animate-ping"></span>
+                    </div>
+                    <div class="text-2xl font-bold text-emerald-50 tracking-tight" id="highOut"></div>
+                </div>
+                <div class="bg-rose-500/5 p-5 rounded-[2rem] border border-rose-500/20">
+                    <div class="flex justify-between items-center mb-1">
+                        <span class="text-rose-500 text-[10px] font-black uppercase tracking-widest text-white/40">Long Zone (Alış)</span>
+                        <span class="h-2 w-2 rounded-full bg-rose-500 animate-ping"></span>
+                    </div>
+                    <div class="text-2xl font-bold text-rose-50 tracking-tight" id="lowOut"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // YENİ KARMAŞIK ŞİFRE: Cme!1905*Av
+    // Burayı istediğin herhangi bir şeyle değiştirebilirsin.
+    const _0x4a2 = "Cme!1905*Av"; 
+
+    function checkPassword() {
+        const input = document.getElementById("password-input").value;
+        if (input === _0x4a2) {
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("app-content").classList.remove("hidden");
+        } else {
+            const error = document.getElementById("error-msg");
+            error.classList.remove("hidden");
+            setTimeout(() => error.classList.add("hidden"), 3000);
+        }
+    }
+
+    document.getElementById("password-input").addEventListener("keypress", (e) => { if(e.key === "Enter") checkPassword(); });
+
+    function calc() {
+        const low = Number(document.getElementById("low").value);
+        const high = Number(document.getElementById("high").value);
+        const v = Number(document.getElementById("vol").value) / 100;
+        if (!low || !high || !v) return;
+        const h1 = Math.round(high * (1 + v / 2));
+        const h2 = Math.round(high * (1 + v));
+        const l1 = Math.round(low * (1 - v / 2));
+        const l2 = Math.round(low * (1 - v));
+        document.getElementById("highOut").innerText = `${h1.toLocaleString()} – ${h2.toLocaleString()}`;
+        document.getElementById("lowOut").innerText = `${l2.toLocaleString()} – ${l1.toLocaleString()}`;
+        document.getElementById("out").classList.remove("hidden");
+    }
+</script>
+</body>
+</html>
