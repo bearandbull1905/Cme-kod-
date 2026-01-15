@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>B&B Global Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background: #020617; color: white; font-family: sans-serif; }
+        .hidden { display: none !important; }
+        .glass-card { background: rgba(15, 23, 42, 0.8); backdrop-filter: blur(12px); border: 1px solid rgba(255,255,255,0.1); }
+        .tab-active { border-bottom: 3px solid #6366f1; color: #818cf8; font-weight: 800; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div id="login-screen" class="w-full max-w-sm glass-card p-10 rounded-3xl shadow-2xl text-center">
+        <div class="mb-6">
+            <h2 class="text-2xl font-black tracking-tighter text-indigo-400">ÖZEL ANALİZ PANELİ</h2>
+            <p class="text-slate-400 text-sm mt-1 font-medium tracking-wide">Erişim için şifre doğrulayın</p>
+        </div>
+        <input id="password-input" type="password" placeholder="Karmaşık Şifre" class="w-full p-4 bg-slate-900/50 border border-slate-700 rounded-2xl mb-4 text-center outline-none focus:ring-2 focus:ring-indigo-500 text-white font-bold transition-all">
+        <button onclick="checkPassword()" class="w-full bg-indigo-600 p-4 rounded-2xl font-black hover:bg-indigo-500 active:scale-95 transition-all shadow-lg shadow-indigo-900/40">SİSTEMİ AÇ</button>
+        <p id="error-msg" class="text-red-400 text-xs mt-4 hidden font-bold uppercase">Yetkisiz Erişim!</p>
+    </div>
+
+    <div id="app-content" class="hidden w-full max-w-md glass-card p-8 rounded-[2.5rem]">
+        <div class="flex justify-between border-b border-slate-800/50 mb-8 text-[11px] font-black uppercase tracking-[0.2em] text-slate-500">
+            <button id="btn-cme" onclick="switchTab('cme')" class="pb-3 tab-active transition-all">CME</button>
+            <button id="btn-usdt" onclick="switchTab('usdt')" class="pb-3 transition-all">USDT</button>
+            <button id="btn-btc" onclick="switchTab('btc')" class="pb-3 transition-all text-slate-700">STRENGTH</button>
+        </div>
+
+        <div id="calculator-area">
+            <div id="active-title" class="text-center mb-6 text-indigo-400 font-black italic tracking-widest text-sm uppercase">CME ANALİZ</div>
+            
+            <div class="space-y-6">
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest">Low</label>
+                        <input id="val-low" type="number" value="84600" class="w-full bg-slate-800/40 p-4 rounded-2xl border border-slate-700 text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                    <div class="space-y-1">
+                        <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest">High</label>
+                        <input id="val-high" type="number" value="85250" class="w-full bg-slate-800/40 p-4 rounded-2xl border border-slate-700 text-white outline-none focus:ring-2 focus:ring-indigo-500">
+                    </div>
+                </div>
+                <div class="space-y-1">
+                    <label class="text-[10px] text-slate-500 ml-1 uppercase font-bold tracking-widest block text-center mb-1">Volatilite (%)</label>
+                    <input id="val-vol" type="number" value="2.5" step="0.1" class="w-full bg-slate-800/40 p-4 rounded-2xl border border-slate-700 text-white text-center outline-none focus:ring-2 focus:ring-cyan-500 text-xl font-bold">
+                </div>
+
+                <button onclick="calculate()" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-700 py-5 rounded-2xl font-black text-white shadow-xl hover:brightness-110 active:scale-95 transition-all uppercase tracking-widest">Analizi Başlat</button>
+                
+                <div id="out" class="hidden space-y-4 pt-6 border-t border-slate-800/50">
+                    <div class="bg-emerald-500/5 p-5 rounded-[1.5rem] border border-emerald-500/20">
+                        <div class="text-emerald-500 text-[10px] font-black uppercase mb-1">Satış (Short) Bölgesi</div>
+                        <div class="text-xl font-bold text-emerald-50" id="res-high"></div>
+                    </div>
+                    <div class="bg-rose-500/5 p-5 rounded-[1.5rem] border border-rose-500/20">
+                        <div class="text-rose-500 text-[10px] font-black uppercase mb-1">Alış (Long) Bölgesi</div>
+                        <div class="text-xl font-bold text-rose-50" id="res-low"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<script>
+    // ŞİFREN: Cme!1905*Av
+    const _pw = "Cme!1905*Av"; 
+    let currentTab = 'cme';
+
+    const tabData = {
+        cme: { title: "CME ANALİZ", vol: 2.5, low: 84600, high: 85250 },
+        usdt: { title: "USDT ANALİZ", vol: 1.8, low: 5.2, high: 5.6 },
+        btc: { title: "STRENGTH SCORE", vol: 3.2, low: 95000, high: 98000 }
+    };
+
+    function checkPassword() {
+        if (document.getElementById("password-input").value === _pw) {
+            document.getElementById("login-screen").classList.add("hidden");
+            document.getElementById("app-content").classList.remove("hidden");
+        } else {
+            const err = document.getElementById("error-msg");
+            err.classList.remove("hidden");
+            setTimeout(() => err.classList.add("hidden"), 2500);
+        }
+    }
+
+    function switchTab(tab) {
+        currentTab = tab;
+        // Sekme görünümleri
+        ['cme', 'usdt', 'btc'].forEach(t => {
+            document.getElementById('btn-' + t).classList.remove('tab-active');
+        });
+        document.getElementById('btn-' + tab).classList.add('tab-active');
+        
+        // Verileri Güncelle
+        document.getElementById('active-title').innerText = tabData[tab].title;
+        document.getElementById('val-vol').value = tabData[tab].vol;
+        document.getElementById('val-low').value = tabData[tab].low;
+        document.getElementById('val-high').value = tabData[tab].high;
+        
+        // Sonuçları Gizle
+        document.getElementById('out').classList.add('hidden');
+    }
+
+    function calculate() {
+        const l = Number(document.getElementById('val-low').value);
+        const h = Number(document.getElementById('val-high').value);
+        const v = Number(document.getElementById('val-vol').value) / 100;
+        
+        if (!l || !h) return;
+
+        const h1 = Math.round(h * (1 + v / 2) * 100) / 100;
+        const h2 = Math.round(h * (1 + v) * 100) / 100;
+        const l1 = Math.round(l * (1 - v / 2) * 100) / 100;
+        const l2 = Math.round(l * (1 - v) * 100) / 100;
+
+        document.getElementById('res-high').innerText = `${h1.toLocaleString()} - ${h2.toLocaleString()}`;
+        document.getElementById('res-low').innerText = `${l2.toLocaleString()} - ${l1.toLocaleString()}`;
+        document.getElementById('out').classList.remove('hidden');
+    }
+</script>
+</body>
+</html>
